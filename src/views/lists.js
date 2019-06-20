@@ -29,7 +29,6 @@ module.exports = function (ldb) {
           ldb.createReadStream({
             gt: 'list!' + '!',
             lt: 'list!' + '~'
-
           }).on('data', function (row) {
             console.log(row)
             var parts = row.key.split('!')

@@ -53,6 +53,7 @@ const items = [
     type: 'item',
     timestamp: Date.now(),
     content: {
+      listId: 'a4081dda341597eba670f02f04795e1c42f628c663fb58c8b3b53f75c8a34016',
       name: 'Gargoyle'
     }
   },
@@ -60,6 +61,7 @@ const items = [
     type: 'item',
     timestamp: Date.now(),
     content: {
+      listId: 'a4081dda341597eba670f02f04795e1c42f628c663fb58c8b3b53f75c8a34016',
       name: 'Dragon'
     }
   },
@@ -67,6 +69,7 @@ const items = [
     type: 'item',
     timestamp: Date.now(),
     content: {
+      listId: 'a4081dda341597eba670f02f04795e1c42f628c663fb58c8b3b53f75c8a34016',
       name: 'Unicorn'
     }
   },
@@ -74,6 +77,7 @@ const items = [
     type: 'item',
     timestamp: Date.now(),
     content: {
+      listId: 'a4081dda341597eba670f02f04795e1c42f628c663fb58c8b3b53f75c8a34016',
       name: 'Chimera'
     }
   }
@@ -81,12 +85,12 @@ const items = [
 
 core.writer('default', function (err, feed) {
   core.ready('lists', () => {
-    feed.append(list, (err, seq) => {
-      core.api.lists.all(() => {})
-    })
   })
 
   core.ready('items', () => {
+    feed.append(items, (err, seq) => {
+      core.api.items.all(console.log)
+    })
   })
 })
 
