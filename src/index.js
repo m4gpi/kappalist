@@ -3,13 +3,15 @@ const os = require('os')
 const fs = require('fs')
 
 const kappa = require('kappa-core')
-const View = require('kappa-view-level')
 const level = require('level')
 const sublevel = require('subleveldown')
+
 const crypto = require('hypercore-crypto')
 const { EventEmitter } = require('events')
+
 const mkdirp = require('mkdirp')
 
+const ListView = require('./views/items')
 const ItemView = require('./views/items')
 
 const APP_NAME = require('../package.json').name
@@ -31,32 +33,77 @@ if (!APP_CONFIG.groups.find((key) => key === pubKey)) {
 
 const core = kappa(GROUP_PATH(pubKey), { valueEncoding: 'json' })
 
+console.log("PUBLIC KEY: ", pubKey)
 mkdirp.sync(GROUP_VIEWS_PATH(pubKey))
-const db = sublevel(level(GROUP_VIEWS_PATH(pubKey)), 'items', { valueEncoding: 'json' })
 
-core.use('items', ItemView(db))
+const db = level(GROUP_VIEWS_PATH(pubKey))
+core.use('lists', ListView(sublevel(db, 'lists', { valueEncoding: 'json' })))
+core.use('items', ItemView(sublevel(db, 'items', { valueEncoding: 'json' })))
 
-const item = {
-  type: 'list/item',
+const list = {
+  type: 'list',
   timestamp: Date.now(),
   content: {
-    name: 'cheerios'
+    name: 'Legendary Creatures'
   }
 }
 
-core.writer('default', function (err, feed) {
-  feed.append(item, () => {
-    feed.append(Object.assign(item, { content: { name: 'bark' } }), (err) => {
-      var stream = feed.createReadStream({ start: 0, end: feed.length })
-      stream.on('data', (chunk) => console.log(chunk))
-      stream.once('end', () => console.log("DONE"))
+const items = [
+  {
+    type: 'item',
+    timestamp: Date.now(),
+    content: {
+      name: 'Gargoyle'
+    }
+  },
+  {
+    type: 'item',
+    timestamp: Date.now(),
+    content: {
+      name: 'Dragon'
+    }
+  },
+  {
+    type: 'item',
+    timestamp: Date.now(),
+    content: {
+      name: 'Unicorn'
+    }
+  },
+  {
+    type: 'item',
+    timestamp: Date.now(),
+    content: {
+      name: 'Chimera'
+    }
+  }
+]
 
-      // core.ready('items', () => {
-      //   core.api.items.all(function (err, items) {
-      //     if (err) throw err
-      //     console.log(items)
-      //   })
-      // })
+core.writer('default', function (err, feed) {
+  core.ready('lists', () => {
+    feed.append(list, (err, seq) => {
+      core.api.lists.all(() => {})
     })
   })
+
+  core.ready('items', () => {
+  })
 })
+
+//   feed.append(item, () => {
+//     // feed.append(Object.assign(item, { content: { name: 'bark' } }), (err) => {
+//     var stream = feed.createReadStream({ start: 0, end: feed.length })
+//     stream.on('data', (chunk) => console.log(chunk))
+//     stream.once('end', () => console.log("DONE"))
+
+//     core.ready('items', () => {
+//       // core.api.items.get('5408b20d5d1c78f983e06b0242ca1ff68f8bbf9cbba7f60feb684c89bcaa920c', (err, value) => {
+//       //   console.log(value)
+//       // })
+//       core.api.items.read({ gt: 'list!item!!', lt: 'list!item!~' }, function (err, items) {
+//         if (err) throw err
+//         console.log("ITEMS", items, "\n\n")
+//       })
+//     })
+//     // })
+//   })

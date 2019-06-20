@@ -1,19 +1,18 @@
 const View = require('kappa-view-level')
 
-module.exports = function (lvl) {
-  return View(lvl, {
-    map: function (msg) {
-      console.log(msg)
+module.exports = function (ldb) {
+  return View(ldb, {
+    map: function (msg, next) {
       if (!sanitize(msg)) return []
 
       var mappings = []
 
-      if (msg.value.type === 'item') {
-        var key = 'item!about!' + msg.key
+      if (msg.value.type === 'list') {
+        var key = 'list!about!' + msg.key
         var value = msg.value.content
         mappings.push([key, value])
       } else {
-        mappings.push(['item!key!' + msg.key, 1])
+        mappings.push(['list!key!' + msg.key, 1])
       }
 
       return mappings
@@ -21,20 +20,21 @@ module.exports = function (lvl) {
     api: {
       get: function (core, key, cb) {
         this.ready(function () {
-          lvl.get('item!item!' + key, cb)
+          ldb.get('list!about!' + key, cb)
         })
       },
       all: function (core, cb) {
         this.ready(function () {
           var res = {}
-          lvl.createReadStream({
-            gt: 'item!' + '!',
-            lt: 'item!' + '~'
+          ldb.createReadStream({
+            gt: 'list!' + '!',
+            lt: 'list!' + '~'
 
           }).on('data', function (row) {
+            console.log(row)
             var parts = row.key.split('!')
             var key = parts[2]
-            if (parts.length === 3 && parts[1] === 'item') {
+            if (parts.length === 3 && parts[1] === 'about') {
               if (!res[key]) res[key] = { key: key  }
               res[key].name = row.value.name
             } else if (!res[key]) {
@@ -46,7 +46,18 @@ module.exports = function (lvl) {
             .once('error', cb)
         })
       }
-    }
+    },
+    storeState: function (state, cb) {
+      state = state.toString('base64')
+      ldb.put('state', state, cb)
+    },
+    fetchState: function (cb) {
+      ldb.get('state', function (err, state) {
+        if (err && err.notFound) cb()
+        else if (err) cb(err)
+        else cb(null, Buffer.from(state, 'base64'))
+      })
+    },
   })
 }
 
