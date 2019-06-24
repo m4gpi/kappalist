@@ -1,6 +1,7 @@
-var through2 = require('through2')
-var collect = require('collect-stream')
+const through2 = require('through2')
+const collect = require('collect-stream')
 const { EventEmitter } = require('events')
+const mfr = require('map-filter-reduce')
 
 const MESSAGE_TYPE = 'list/item'
 const NAMESPACE = 'item!'
@@ -60,7 +61,7 @@ module.exports = function View (db, opts) {
         db.createReadStream(opts).pipe(through)
         collect(through, cb)
       },
-      onInsert: function (core, cb) {
+      onInsert: function onInsert (core, cb) {
         events.on('insert', cb)
       }
     },

@@ -19,7 +19,7 @@ core.writer('local', function (err, feed) {
     })
   })
 
-  function seedData (cb) {
+  async function seedData (cb) {
     feed.append([
       {
         type: 'post',
